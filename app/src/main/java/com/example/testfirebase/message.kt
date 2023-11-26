@@ -24,18 +24,19 @@ class message : AppCompatActivity() {
         binding = ActivityMessageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Инициализация FirebaseAuth
         auth = FirebaseAuth.getInstance()
+
 
         val database = FirebaseDatabase.getInstance()
         val reference = database.getReference("users")
         binding.bSend.setOnClickListener(){
             reference.child(reference.push().key ?: "Neizvestno").setValue(User(auth.currentUser?.displayName, binding.edMessage.text.toString()))
-            binding.edMessage.text.clear()
+
         }
 
         onChangeListaner(reference)
         initRcView()
-
     }
 
     private fun initRcView() = with(binding){
@@ -49,11 +50,11 @@ class message : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val list = ArrayList<User>()
 
-               for (s in snapshot.children){
-                val user = s.getValue(User::class.java)
-                   if (user != null)list.add(user)
-                   list
-               }
+                for (s in snapshot.children){
+                    val user = s.getValue(User::class.java)
+                    if (user != null)list.add(user)
+                    list
+                }
                 adapter.submitList(list)
             }
 

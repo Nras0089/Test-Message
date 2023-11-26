@@ -18,6 +18,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.example.testfirebase.AnotherActivity
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class SignInAct : AppCompatActivity() {
     lateinit var launcher: ActivityResultLauncher<Intent>
@@ -67,6 +71,10 @@ class SignInAct : AppCompatActivity() {
         auth.signInWithCredential(credential).addOnCompleteListener() {
             if (it.isSuccessful) {
                 Log.d("MyLog", "Google sign-in successful")
+                // Пользователь успешно вошел, теперь мы можем инициализировать его в Firebase Database
+                val user = auth.currentUser
+                initializeUserInDatabase(user?.uid)
+
                 checkAuthState()
             } else {
                 Log.d("MyLog", "Google sign-in error: ${it.exception?.message}")
@@ -74,11 +82,33 @@ class SignInAct : AppCompatActivity() {
         }
     }
 
+    private fun initializeUserInDatabase(userUID: String?) {
+        userUID ?: return
+
+        val databaseReference = FirebaseDatabase.getInstance().getReference("users")
+        databaseReference.child(userUID).addListenerForSingleValueEvent(object :
+            ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    // Если пользователь не существует, создаем новую запись
+                    databaseReference.child(userUID).setValue(UserAccount(balance = 0))
+                }
+                // Если пользователь уже существует, ничего не делаем
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Обработка ошибок
+            }
+        })
+    }
+
+    data class UserAccount(val balance: Int = 0)
+
     private fun checkAuthState() {
         Log.d("MyLog", "Checking auth state")
         if (auth.currentUser != null) {
             Log.d("MyLog", "User is authenticated, navigating to AnotherActivity")
-            val intent = Intent(this, message::class.java)
+            val intent = Intent(this, AnotherActivity::class.java)
             startActivity(intent)
             finish()
         } else {

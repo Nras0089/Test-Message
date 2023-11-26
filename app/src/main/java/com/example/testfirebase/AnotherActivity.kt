@@ -1,5 +1,6 @@
 package com.example.testfirebase
 
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,6 +14,10 @@ class AnotherActivity : AppCompatActivity() {
 
     fun onClickMessage(view : View){
         val intent = Intent(this, message::class.java)
+        startActivity(intent)
+    }
+    fun onClickBank(view : View){
+        val intent = Intent(this, Bank::class.java)
         startActivity(intent)
     }
 }
